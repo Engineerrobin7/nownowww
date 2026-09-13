@@ -1,0 +1,60 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+    }
+
+    match /posts/{postId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      // Precision update: Only allow changing like/share/comment counts if not owner
+      allow update: if isSignedIn() && (
+        isOwner(resource.data.uid) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'shareCount', 'commentCount'])
+      );
+      allow delete: if isSignedIn() && (isOwner(resource.data.uid) || isAdmin());
+    }
+
+    match /post_likes/{likeId} {
+      allow read: if isSignedIn();
+      // Ensure users can only create/delete their own like link
+      allow create, delete: if isSignedIn() && request.auth.uid == likeId.split('_')[1];
+    }
+
+    match /social_graph/{followId} {
+      allow read: if isSignedIn();
+      allow create, delete: if isSignedIn() && request.auth.uid == followId.split('_')[0];
+    }
+
+    match /comments/{commentId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'replyCount']);
+      allow delete: if isSignedIn() && (isOwner(resource.data.uid) || isAdmin());
+    }
+
+    match /chats/{chatId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participantIds;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        request.auth.uid in resource.data.participantIds ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessage', 'lastMessageAt', 'typingStatus'])
+      );
+    }
+
+    match /notifications/{notificationId} {
+      allow read, update, delete: if isSignedIn() && resource.data.receiverId == request.auth.uid;
+    }
+  }
+}
