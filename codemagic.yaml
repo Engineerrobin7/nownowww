@@ -47,7 +47,7 @@ workflows:
           dart run build_runner build --delete-conflicting-outputs
       - name: Flutter build APK
         script: |
-          flutter build apk --release
+          flutter build apk --release --android-skip-build-dependency-validation
     artifacts:
       - build/app/outputs/flutter-apk/*.apk
     publishing:
