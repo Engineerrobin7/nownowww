@@ -137,6 +137,7 @@ class _PostCardState extends ConsumerState<PostCard> with SingleTickerProviderSt
                       borderRadius: BorderRadius.circular(12),
                       child: CachedNetworkImage(
                         imageUrl: post.imageUrl!,
+                        memCacheWidth: 800,
                         fit: BoxFit.cover,
                         width: double.infinity,
                         height: 200,
