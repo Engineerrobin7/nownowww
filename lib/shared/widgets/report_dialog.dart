@@ -75,21 +75,21 @@ class _ReportDialogState extends ConsumerState<ReportDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: _reasons.map((reason) {
-            // Using a simple selection logic to avoid deprecation warnings
+            final isSelected = _selectedReason == reason;
             return InkWell(
+              borderRadius: BorderRadius.circular(8),
               onTap: () => setState(() => _selectedReason = reason),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                 child: Row(
                   children: [
-                    Radio<String>(
-                      value: reason,
-                      groupValue: _selectedReason,
-                      onChanged: (value) => setState(() => _selectedReason = value),
-                      activeColor: Colors.black,
+                    Icon(
+                      isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                      color: isSelected ? Colors.black : Colors.grey,
+                      size: 20,
                     ),
-                    const SizedBox(width: 8),
-                    Text(reason),
+                    const SizedBox(width: 12),
+                    Text(reason, style: const TextStyle(fontSize: 14)),
                   ],
                 ),
               ),

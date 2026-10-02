@@ -32,6 +32,9 @@ mixin _$PostModel {
   int get likesCount => throw _privateConstructorUsedError;
   int get commentCount => throw _privateConstructorUsedError;
   int get shareCount => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
+  List<String>? get pollOptions => throw _privateConstructorUsedError;
+  Map<String, int>? get pollVotes => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
   String? get location => throw _privateConstructorUsedError;
@@ -60,6 +63,9 @@ abstract class $PostModelCopyWith<$Res> {
       int likesCount,
       int commentCount,
       int shareCount,
+      String? imageUrl,
+      List<String>? pollOptions,
+      Map<String, int>? pollVotes,
       DateTime createdAt,
       DateTime? updatedAt,
       String? location});
@@ -90,6 +96,9 @@ class _$PostModelCopyWithImpl<$Res, $Val extends PostModel>
     Object? likesCount = null,
     Object? commentCount = null,
     Object? shareCount = null,
+    Object? imageUrl = freezed,
+    Object? pollOptions = freezed,
+    Object? pollVotes = freezed,
     Object? createdAt = null,
     Object? updatedAt = freezed,
     Object? location = freezed,
@@ -143,6 +152,18 @@ class _$PostModelCopyWithImpl<$Res, $Val extends PostModel>
           ? _value.shareCount
           : shareCount // ignore: cast_nullable_to_non_nullable
               as int,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      pollOptions: freezed == pollOptions
+          ? _value.pollOptions
+          : pollOptions // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      pollVotes: freezed == pollVotes
+          ? _value.pollVotes
+          : pollVotes // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>?,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -180,6 +201,9 @@ abstract class _$$PostModelImplCopyWith<$Res>
       int likesCount,
       int commentCount,
       int shareCount,
+      String? imageUrl,
+      List<String>? pollOptions,
+      Map<String, int>? pollVotes,
       DateTime createdAt,
       DateTime? updatedAt,
       String? location});
@@ -208,6 +232,9 @@ class __$$PostModelImplCopyWithImpl<$Res>
     Object? likesCount = null,
     Object? commentCount = null,
     Object? shareCount = null,
+    Object? imageUrl = freezed,
+    Object? pollOptions = freezed,
+    Object? pollVotes = freezed,
     Object? createdAt = null,
     Object? updatedAt = freezed,
     Object? location = freezed,
@@ -261,6 +288,18 @@ class __$$PostModelImplCopyWithImpl<$Res>
           ? _value.shareCount
           : shareCount // ignore: cast_nullable_to_non_nullable
               as int,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      pollOptions: freezed == pollOptions
+          ? _value._pollOptions
+          : pollOptions // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
+      pollVotes: freezed == pollVotes
+          ? _value._pollVotes
+          : pollVotes // ignore: cast_nullable_to_non_nullable
+              as Map<String, int>?,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -293,10 +332,15 @@ class _$PostModelImpl implements _PostModel {
       this.likesCount = 0,
       this.commentCount = 0,
       this.shareCount = 0,
+      this.imageUrl,
+      final List<String>? pollOptions,
+      final Map<String, int>? pollVotes,
       required this.createdAt,
       this.updatedAt,
       this.location})
-      : _topics = topics;
+      : _topics = topics,
+        _pollOptions = pollOptions,
+        _pollVotes = pollVotes;
 
   factory _$PostModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$PostModelImplFromJson(json);
@@ -337,6 +381,28 @@ class _$PostModelImpl implements _PostModel {
   @JsonKey()
   final int shareCount;
   @override
+  final String? imageUrl;
+  final List<String>? _pollOptions;
+  @override
+  List<String>? get pollOptions {
+    final value = _pollOptions;
+    if (value == null) return null;
+    if (_pollOptions is EqualUnmodifiableListView) return _pollOptions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
+  final Map<String, int>? _pollVotes;
+  @override
+  Map<String, int>? get pollVotes {
+    final value = _pollVotes;
+    if (value == null) return null;
+    if (_pollVotes is EqualUnmodifiableMapView) return _pollVotes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  @override
   final DateTime createdAt;
   @override
   final DateTime? updatedAt;
@@ -345,7 +411,7 @@ class _$PostModelImpl implements _PostModel {
 
   @override
   String toString() {
-    return 'PostModel(id: $id, uid: $uid, authorName: $authorName, authorUsername: $authorUsername, authorPhotoUrl: $authorPhotoUrl, content: $content, type: $type, topics: $topics, isAnonymous: $isAnonymous, likesCount: $likesCount, commentCount: $commentCount, shareCount: $shareCount, createdAt: $createdAt, updatedAt: $updatedAt, location: $location)';
+    return 'PostModel(id: $id, uid: $uid, authorName: $authorName, authorUsername: $authorUsername, authorPhotoUrl: $authorPhotoUrl, content: $content, type: $type, topics: $topics, isAnonymous: $isAnonymous, likesCount: $likesCount, commentCount: $commentCount, shareCount: $shareCount, imageUrl: $imageUrl, pollOptions: $pollOptions, pollVotes: $pollVotes, createdAt: $createdAt, updatedAt: $updatedAt, location: $location)';
   }
 
   @override
@@ -372,6 +438,12 @@ class _$PostModelImpl implements _PostModel {
                 other.commentCount == commentCount) &&
             (identical(other.shareCount, shareCount) ||
                 other.shareCount == shareCount) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
+            const DeepCollectionEquality()
+                .equals(other._pollOptions, _pollOptions) &&
+            const DeepCollectionEquality()
+                .equals(other._pollVotes, _pollVotes) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -396,6 +468,9 @@ class _$PostModelImpl implements _PostModel {
       likesCount,
       commentCount,
       shareCount,
+      imageUrl,
+      const DeepCollectionEquality().hash(_pollOptions),
+      const DeepCollectionEquality().hash(_pollVotes),
       createdAt,
       updatedAt,
       location);
@@ -428,6 +503,9 @@ abstract class _PostModel implements PostModel {
       final int likesCount,
       final int commentCount,
       final int shareCount,
+      final String? imageUrl,
+      final List<String>? pollOptions,
+      final Map<String, int>? pollVotes,
       required final DateTime createdAt,
       final DateTime? updatedAt,
       final String? location}) = _$PostModelImpl;
@@ -459,6 +537,12 @@ abstract class _PostModel implements PostModel {
   int get commentCount;
   @override
   int get shareCount;
+  @override
+  String? get imageUrl;
+  @override
+  List<String>? get pollOptions;
+  @override
+  Map<String, int>? get pollVotes;
   @override
   DateTime get createdAt;
   @override

@@ -9,6 +9,7 @@ class MessageModel with _$MessageModel {
     required String id,
     required String senderId,
     required String text,
+    String? imageUrl,
     required DateTime createdAt,
   }) = _MessageModel;
 

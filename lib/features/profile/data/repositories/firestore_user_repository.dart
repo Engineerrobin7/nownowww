@@ -112,6 +112,18 @@ class FirestoreUserRepository implements IUserRepository {
   }
 
   @override
+  Future<List<String>> getFollowerUids(String uid) async {
+    final query = await _socialGraph.where('followingUid', isEqualTo: uid).get();
+    return query.docs.map((doc) => doc.data()['followerUid'] as String).toList();
+  }
+
+  @override
+  Future<List<String>> getFollowingUids(String uid) async {
+    final query = await _socialGraph.where('followerUid', isEqualTo: uid).get();
+    return query.docs.map((doc) => doc.data()['followingUid'] as String).toList();
+  }
+
+  @override
   Future<void> updatePresence(String uid, bool isOnline) async {
     await _users.doc(uid).update({
       'isOnline': isOnline,

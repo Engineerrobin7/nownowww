@@ -313,5 +313,38 @@ final currentUserLikesProvider =
 );
 
 typedef CurrentUserLikesRef = AutoDisposeStreamProviderRef<Set<String>>;
+String _$currentUserBookmarksHash() =>
+    r'727f9033717d09ed8b8279ad8fa8f147edb7f35f';
+
+/// See also [currentUserBookmarks].
+@ProviderFor(currentUserBookmarks)
+final currentUserBookmarksProvider =
+    AutoDisposeStreamProvider<Set<String>>.internal(
+  currentUserBookmarks,
+  name: r'currentUserBookmarksProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$currentUserBookmarksHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef CurrentUserBookmarksRef = AutoDisposeStreamProviderRef<Set<String>>;
+String _$bookmarkedPostsHash() => r'ce959b45a69091c367d1b90e6423c8f0be251bf4';
+
+/// See also [bookmarkedPosts].
+@ProviderFor(bookmarkedPosts)
+final bookmarkedPostsProvider =
+    AutoDisposeFutureProvider<List<PostModel>>.internal(
+  bookmarkedPosts,
+  name: r'bookmarkedPostsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$bookmarkedPostsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef BookmarkedPostsRef = AutoDisposeFutureProviderRef<List<PostModel>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

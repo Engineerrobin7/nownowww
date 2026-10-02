@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:nownowww/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:nownowww/features/auth/presentation/providers/auth_providers.dart';
 import 'package:nownowww/shared/presentation/providers/storage_providers.dart';
 import 'package:nownowww/features/profile/domain/models/user_model.dart';
@@ -21,6 +22,23 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final _bioController = TextEditingController();
   bool _isLoading = false;
   File? _imageFile;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authUser = ref.read(currentUserProvider);
+      if (authUser != null) {
+        if (authUser.displayName != null && authUser.displayName!.isNotEmpty) {
+          _displayNameController.text = authUser.displayName!;
+        }
+        if (authUser.email.contains('@')) {
+          final suggestedUsername = authUser.email.split('@').first.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
+          _usernameController.text = suggestedUsername.toLowerCase();
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -46,9 +64,11 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         final authUser = ref.read(currentUserProvider);
         if (authUser == null) return;
 
+        final username = _usernameController.text.trim().toLowerCase();
+
         final isAvailable = await ref
             .read(userRepositoryProvider)
-            .isUsernameAvailable(_usernameController.text.trim());
+            .isUsernameAvailable(username);
 
         if (!isAvailable) {
           if (mounted) {
@@ -59,7 +79,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           return;
         }
 
-        String? photoUrl;
+        String? photoUrl = authUser.photoUrl;
         if (_imageFile != null) {
           photoUrl = await ref.read(storageRepositoryProvider).uploadImage(
             path: 'users/${authUser.uid}/profile.jpg',
@@ -70,7 +90,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         final userModel = UserModel(
           uid: authUser.uid,
           email: authUser.email,
-          username: _usernameController.text.trim(),
+          username: username,
           displayName: _displayNameController.text.trim(),
           bio: _bioController.text.trim(),
           photoUrl: photoUrl,
@@ -92,15 +112,20 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authUser = ref.watch(currentUserProvider);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.black),
+            tooltip: 'Sign Out',
+            onPressed: () => ref.read(authControllerProvider.notifier).signOut(),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -128,8 +153,10 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           CircleAvatar(
                             radius: 60,
                             backgroundColor: Colors.grey.shade200,
-                            backgroundImage: _imageFile != null ? FileImage(_imageFile!) : null,
-                            child: _imageFile == null
+                            backgroundImage: _imageFile != null
+                                ? FileImage(_imageFile!)
+                                : (authUser?.photoUrl != null ? NetworkImage(authUser!.photoUrl!) : null) as ImageProvider?,
+                            child: _imageFile == null && authUser?.photoUrl == null
                                 ? const Icon(Icons.person, size: 80, color: Colors.grey)
                                 : null,
                           ),

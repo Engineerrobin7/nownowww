@@ -153,4 +153,64 @@ class FirestorePostRepository implements IPostRepository {
     final doc = await _postLikes.doc('${postId}_$uid').get();
     return doc.exists;
   }
+
+  CollectionReference<Map<String, dynamic>> get _bookmarks =>
+      _firestore.collection('bookmarks');
+
+  @override
+  Future<void> bookmarkPost(String postId, String uid) async {
+    final bookmarkId = '${uid}_$postId';
+    await _bookmarks.doc(bookmarkId).set({
+      'userId': uid,
+      'postId': postId,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  @override
+  Future<void> unbookmarkPost(String postId, String uid) async {
+    final bookmarkId = '${uid}_$postId';
+    await _bookmarks.doc(bookmarkId).delete();
+  }
+
+  @override
+  Stream<List<String>> watchUserBookmarks(String uid) {
+    return _bookmarks
+        .where('userId', isEqualTo: uid)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => doc.data()['postId'] as String)
+            .toList());
+  }
+
+  @override
+  Future<List<PostModel>> fetchBookmarkedPosts(String uid) async {
+    final snapshot = await _bookmarks.where('userId', isEqualTo: uid).get();
+    final postIds = snapshot.docs.map((doc) => doc.data()['postId'] as String).toList();
+    if (postIds.isEmpty) return [];
+
+    final posts = <PostModel>[];
+    for (final id in postIds) {
+      final post = await getPost(id);
+      if (post != null) posts.add(post);
+    }
+    return posts;
+  }
+
+  @override
+  Future<void> votePoll(String postId, String uid, int optionIndex) async {
+    await _firestore.runTransaction((transaction) async {
+      final postRef = _posts.doc(postId);
+      final snapshot = await transaction.get(postRef);
+      if (!snapshot.exists) return;
+
+      final data = snapshot.data() ?? {};
+      final pollVotes = Map<String, int>.from(data['pollVotes'] ?? {});
+
+      // Record user's vote
+      pollVotes[uid] = optionIndex;
+
+      transaction.update(postRef, {'pollVotes': pollVotes});
+    });
+  }
 }

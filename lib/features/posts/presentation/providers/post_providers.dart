@@ -33,3 +33,19 @@ Stream<Set<String>> currentUserLikes(CurrentUserLikesRef ref) {
       .snapshots()
       .map((snap) => snap.docs.map((doc) => doc.data()['postId'] as String).toSet());
 }
+
+@riverpod
+Stream<Set<String>> currentUserBookmarks(CurrentUserBookmarksRef ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Stream.value({});
+
+  return ref.watch(postRepositoryProvider).watchUserBookmarks(user.uid).map((list) => list.toSet());
+}
+
+@riverpod
+Future<List<PostModel>> bookmarkedPosts(BookmarkedPostsRef ref) {
+  final user = ref.watch(currentUserProvider);
+  if (user == null) return Future.value([]);
+
+  return ref.watch(postRepositoryProvider).fetchBookmarkedPosts(user.uid);
+}

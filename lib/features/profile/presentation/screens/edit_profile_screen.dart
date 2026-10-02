@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -105,7 +106,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       backgroundColor: Colors.grey.shade200,
                       backgroundImage: _imageFile != null 
                         ? FileImage(_imageFile!) 
-                        : (widget.user.photoUrl != null ? NetworkImage(widget.user.photoUrl!) : null) as ImageProvider?,
+                        : (widget.user.photoUrl != null ? CachedNetworkImageProvider(widget.user.photoUrl!) : null) as ImageProvider?,
                       child: _imageFile == null && widget.user.photoUrl == null
                           ? const Icon(Icons.person, size: 60, color: Colors.grey)
                           : null,

@@ -23,6 +23,13 @@ _$PostModelImpl _$$PostModelImplFromJson(Map<String, dynamic> json) =>
       likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,
       commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
       shareCount: (json['shareCount'] as num?)?.toInt() ?? 0,
+      imageUrl: json['imageUrl'] as String?,
+      pollOptions: (json['pollOptions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
+      pollVotes: (json['pollVotes'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, (e as num).toInt()),
+      ),
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: json['updatedAt'] == null
           ? null
@@ -44,6 +51,9 @@ Map<String, dynamic> _$$PostModelImplToJson(_$PostModelImpl instance) =>
       'likesCount': instance.likesCount,
       'commentCount': instance.commentCount,
       'shareCount': instance.shareCount,
+      'imageUrl': instance.imageUrl,
+      'pollOptions': instance.pollOptions,
+      'pollVotes': instance.pollVotes,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
       'location': instance.location,

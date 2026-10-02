@@ -11,6 +11,7 @@ _$MessageModelImpl _$$MessageModelImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       senderId: json['senderId'] as String,
       text: json['text'] as String,
+      imageUrl: json['imageUrl'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
 
@@ -19,5 +20,6 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'id': instance.id,
       'senderId': instance.senderId,
       'text': instance.text,
+      'imageUrl': instance.imageUrl,
       'createdAt': instance.createdAt.toIso8601String(),
     };

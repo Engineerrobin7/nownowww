@@ -10,6 +10,7 @@ import 'package:nownowww/features/auth/presentation/screens/legal_screen.dart';
 import 'package:nownowww/features/posts/presentation/screens/create_post_screen.dart';
 import 'package:nownowww/features/posts/presentation/screens/feed_screen.dart';
 import 'package:nownowww/features/posts/presentation/screens/post_detail_screen.dart';
+import 'package:nownowww/features/posts/presentation/screens/saved_posts_screen.dart';
 import 'package:nownowww/features/comments/domain/models/comment_model.dart';
 import 'package:nownowww/features/comments/presentation/screens/comment_detail_screen.dart';
 import 'package:nownowww/features/search/presentation/screens/search_screen.dart';
@@ -18,6 +19,7 @@ import 'package:nownowww/features/profile/presentation/screens/profile_screen.da
 import 'package:nownowww/features/profile/presentation/screens/profile_setup_screen.dart';
 import 'package:nownowww/features/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:nownowww/features/profile/presentation/screens/user_list_screen.dart';
+import 'package:nownowww/features/profile/presentation/screens/blocked_users_screen.dart';
 import 'package:nownowww/features/profile/domain/models/user_model.dart';
 import 'package:nownowww/features/settings/presentation/screens/settings_screen.dart';
 import 'package:nownowww/features/settings/presentation/screens/privacy_screen.dart';
@@ -43,7 +45,11 @@ GoRouter appRouter(AppRouterRef ref) {
       
       final isAuthRoute = state.matchedLocation == '/login' || 
                          state.matchedLocation == '/signup' || 
-                         state.matchedLocation == '/login-email';
+                         state.matchedLocation == '/login-email' ||
+                         state.matchedLocation == '/login-phone' ||
+                         state.matchedLocation == '/onboarding' ||
+                         state.matchedLocation == '/terms' ||
+                         state.matchedLocation == '/privacy';
       final isSplash = state.matchedLocation == '/splash';
       final isProfileSetup = state.matchedLocation == '/profile-setup';
 
@@ -153,6 +159,14 @@ GoRouter appRouter(AppRouterRef ref) {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/saved-posts',
+        builder: (context, state) => const SavedPostsScreen(),
+      ),
+      GoRoute(
+        path: '/blocked-users',
+        builder: (context, state) => const BlockedUsersScreen(),
       ),
       GoRoute(
         path: '/privacy-settings',

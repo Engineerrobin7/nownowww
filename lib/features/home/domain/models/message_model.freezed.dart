@@ -23,6 +23,7 @@ mixin _$MessageModel {
   String get id => throw _privateConstructorUsedError;
   String get senderId => throw _privateConstructorUsedError;
   String get text => throw _privateConstructorUsedError;
+  String? get imageUrl => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -37,7 +38,12 @@ abstract class $MessageModelCopyWith<$Res> {
           MessageModel value, $Res Function(MessageModel) then) =
       _$MessageModelCopyWithImpl<$Res, MessageModel>;
   @useResult
-  $Res call({String id, String senderId, String text, DateTime createdAt});
+  $Res call(
+      {String id,
+      String senderId,
+      String text,
+      String? imageUrl,
+      DateTime createdAt});
 }
 
 /// @nodoc
@@ -56,6 +62,7 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
     Object? id = null,
     Object? senderId = null,
     Object? text = null,
+    Object? imageUrl = freezed,
     Object? createdAt = null,
   }) {
     return _then(_value.copyWith(
@@ -71,6 +78,10 @@ class _$MessageModelCopyWithImpl<$Res, $Val extends MessageModel>
           ? _value.text
           : text // ignore: cast_nullable_to_non_nullable
               as String,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -87,7 +98,12 @@ abstract class _$$MessageModelImplCopyWith<$Res>
       __$$MessageModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, String senderId, String text, DateTime createdAt});
+  $Res call(
+      {String id,
+      String senderId,
+      String text,
+      String? imageUrl,
+      DateTime createdAt});
 }
 
 /// @nodoc
@@ -104,6 +120,7 @@ class __$$MessageModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? senderId = null,
     Object? text = null,
+    Object? imageUrl = freezed,
     Object? createdAt = null,
   }) {
     return _then(_$MessageModelImpl(
@@ -119,6 +136,10 @@ class __$$MessageModelImplCopyWithImpl<$Res>
           ? _value.text
           : text // ignore: cast_nullable_to_non_nullable
               as String,
+      imageUrl: freezed == imageUrl
+          ? _value.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -134,6 +155,7 @@ class _$MessageModelImpl implements _MessageModel {
       {required this.id,
       required this.senderId,
       required this.text,
+      this.imageUrl,
       required this.createdAt});
 
   factory _$MessageModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -146,11 +168,13 @@ class _$MessageModelImpl implements _MessageModel {
   @override
   final String text;
   @override
+  final String? imageUrl;
+  @override
   final DateTime createdAt;
 
   @override
   String toString() {
-    return 'MessageModel(id: $id, senderId: $senderId, text: $text, createdAt: $createdAt)';
+    return 'MessageModel(id: $id, senderId: $senderId, text: $text, imageUrl: $imageUrl, createdAt: $createdAt)';
   }
 
   @override
@@ -162,13 +186,16 @@ class _$MessageModelImpl implements _MessageModel {
             (identical(other.senderId, senderId) ||
                 other.senderId == senderId) &&
             (identical(other.text, text) || other.text == text) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, senderId, text, createdAt);
+  int get hashCode =>
+      Object.hash(runtimeType, id, senderId, text, imageUrl, createdAt);
 
   @JsonKey(ignore: true)
   @override
@@ -189,6 +216,7 @@ abstract class _MessageModel implements MessageModel {
       {required final String id,
       required final String senderId,
       required final String text,
+      final String? imageUrl,
       required final DateTime createdAt}) = _$MessageModelImpl;
 
   factory _MessageModel.fromJson(Map<String, dynamic> json) =
@@ -200,6 +228,8 @@ abstract class _MessageModel implements MessageModel {
   String get senderId;
   @override
   String get text;
+  @override
+  String? get imageUrl;
   @override
   DateTime get createdAt;
   @override

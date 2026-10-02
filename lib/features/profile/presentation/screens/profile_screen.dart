@@ -205,17 +205,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> with SingleTicker
           _buildStatItem('${profile.thoughtsCount}', 'Thoughts', Colors.purple),
           _buildStatItem('${profile.commentsCount}', 'Comments', Colors.blue),
           InkWell(
-            onTap: () => context.push('/user-list', extra: {
-              'title': 'Following',
-              'uids': profile.following,
-            }),
+            onTap: () async {
+              final uids = await ref.read(userRepositoryProvider).getFollowingUids(profile.uid);
+              if (mounted) {
+                context.push('/user-list', extra: {
+                  'title': 'Following',
+                  'uids': uids,
+                });
+              }
+            },
             child: _buildStatItem('${profile.followingCount}', 'Following', Colors.orange),
           ),
           InkWell(
-            onTap: () => context.push('/user-list', extra: {
-              'title': 'Followers',
-              'uids': profile.followers,
-            }),
+            onTap: () async {
+              final uids = await ref.read(userRepositoryProvider).getFollowerUids(profile.uid);
+              if (mounted) {
+                context.push('/user-list', extra: {
+                  'title': 'Followers',
+                  'uids': uids,
+                });
+              }
+            },
             child: _buildStatItem('${profile.followersCount}', 'Followers', Colors.red),
           ),
         ],

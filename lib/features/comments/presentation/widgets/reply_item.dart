@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:nownowww/features/comments/domain/models/comment_model.dart';
 import 'package:nownowww/shared/widgets/parsed_text.dart';
 
@@ -32,7 +34,7 @@ class ReplyItem extends StatelessWidget {
                   CircleAvatar(
                     radius: 12,
                     backgroundColor: Colors.grey.shade100,
-                    backgroundImage: reply.authorPhotoUrl != null ? NetworkImage(reply.authorPhotoUrl!) : null,
+                    backgroundImage: reply.authorPhotoUrl != null ? CachedNetworkImageProvider(reply.authorPhotoUrl!) : null,
                     child: reply.authorPhotoUrl == null ? const Icon(Icons.person, size: 14, color: Colors.grey) : null,
                   ),
                   const SizedBox(width: 10),
@@ -52,21 +54,11 @@ class ReplyItem extends StatelessWidget {
                               ),
                             ],
                             const SizedBox(width: 8),
-                            const Text('55m ago', style: TextStyle(color: Colors.grey, fontSize: 10)),
+                            Text(_getTimeAgo(reply.createdAt), style: const TextStyle(color: Colors.grey, fontSize: 10)),
                           ],
                         ),
                         const SizedBox(height: 2),
                         ParsedText(text: reply.content, style: const TextStyle(fontSize: 13, height: 1.4)),
-                        const SizedBox(height: 8),
-                        const Row(
-                          children: [
-                            Text('Reply', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
-                            Spacer(),
-                            Icon(Icons.favorite_border, size: 12, color: Colors.grey),
-                            SizedBox(width: 4),
-                            Text('2', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                          ],
-                        ),
                       ],
                     ),
                   ),
@@ -77,5 +69,12 @@ class ReplyItem extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getTimeAgo(DateTime dateTime) {
+    final diff = DateTime.now().difference(dateTime);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return DateFormat.Md().format(dateTime);
   }
 }

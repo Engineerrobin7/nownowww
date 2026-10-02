@@ -19,5 +19,9 @@ abstract class IUserRepository {
 
   Future<List<UserModel>> getUsersByIds(List<String> uids);
 
+  Future<List<String>> getFollowerUids(String uid);
+
+  Future<List<String>> getFollowingUids(String uid);
+
   Future<void> updatePresence(String uid, bool isOnline);
 }

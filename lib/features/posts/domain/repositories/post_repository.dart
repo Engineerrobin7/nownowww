@@ -22,4 +22,14 @@ abstract class IPostRepository {
   Future<void> incrementShareCount(String postId);
 
   Future<PostModel?> getPost(String postId);
+
+  Future<void> bookmarkPost(String postId, String uid);
+
+  Future<void> unbookmarkPost(String postId, String uid);
+
+  Stream<List<String>> watchUserBookmarks(String uid);
+
+  Future<List<PostModel>> fetchBookmarkedPosts(String uid);
+
+  Future<void> votePoll(String postId, String uid, int optionIndex);
 }

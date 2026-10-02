@@ -98,11 +98,29 @@ class LoginScreen extends ConsumerWidget {
                           onPressed: () => ref.read(authControllerProvider.notifier).signInWithGoogle(),
                         ),
                         const SizedBox(height: 12),
-                    SocialAuthButton(
-                      label: 'Continue with Apple',
-                      icon: const Icon(Icons.apple, color: Colors.black, size: 26),
-                      onPressed: () => ref.read(authControllerProvider.notifier).signInWithApple(),
-                    ),
+                        SocialAuthButton(
+                          label: 'Continue with Apple',
+                          icon: const Icon(Icons.apple, color: Colors.black, size: 26),
+                          onPressed: () {
+                            if (Theme.of(context).platform == TargetPlatform.iOS || Theme.of(context).platform == TargetPlatform.macOS) {
+                              ref.read(authControllerProvider.notifier).signInWithApple();
+                            } else {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Apple Sign-In'),
+                                  content: const Text('Apple Sign-In is only available on iOS devices or requires an active Apple Developer Program account on Android/Web.'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('OK', style: TextStyle(color: Colors.black)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
+                        ),
                         const SizedBox(height: 12),
                         SocialAuthButton(
                           label: 'Continue with Email',

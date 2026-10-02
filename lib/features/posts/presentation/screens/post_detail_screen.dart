@@ -1,6 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:nownowww/features/auth/presentation/providers/auth_providers.dart';
 import 'package:nownowww/features/profile/presentation/providers/profile_providers.dart';
 import 'package:nownowww/features/comments/domain/models/comment_model.dart';
 import 'package:nownowww/features/comments/presentation/providers/comment_providers.dart';
@@ -72,14 +75,12 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Comments', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
-        actions: [
-          IconButton(icon: const Icon(Icons.more_horiz, color: Colors.black), onPressed: () {}),
-        ],
+        title: const Text('Post & Comments', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18)),
       ),
       body: Column(
         children: [
@@ -103,7 +104,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                     padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     child: Row(
                       children: [
-                        Text('Top comments', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        Text('Comments', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                        SizedBox(width: 4),
                         Icon(Icons.keyboard_arrow_down, size: 18),
                       ],
                     ),
@@ -114,7 +116,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                       if (comments.isEmpty) {
                         return const Padding(
                           padding: EdgeInsets.all(32.0),
-                          child: Center(child: Text('No comments yet.')),
+                          child: Center(child: Text('No comments yet. Be the first to reply!')),
                         );
                       }
                       return ListView.builder(
@@ -175,13 +177,9 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
           const SizedBox(width: 8),
           TextButton(
             onPressed: _isSubmitting ? null : _submitComment,
-            child: Text(
-              'Post',
-              style: TextStyle(
-                color: _isSubmitting ? Colors.grey : Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: _isSubmitting
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                : const Text('Post', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -189,13 +187,15 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   }
 }
 
-class _PostHeader extends StatelessWidget {
+class _PostHeader extends ConsumerWidget {
   final PostModel post;
 
   const _PostHeader({required this.post});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserId = ref.watch(currentUserProvider)?.uid;
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -203,14 +203,11 @@ class _PostHeader extends StatelessWidget {
         children: [
           Row(
             children: [
-              Hero(
-                tag: 'avatar_${post.id}',
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.grey.shade100,
-                  backgroundImage: post.authorPhotoUrl != null ? NetworkImage(post.authorPhotoUrl!) : null,
-                  child: post.authorPhotoUrl == null ? const Icon(Icons.person, color: Colors.grey) : null,
-                ),
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.grey.shade100,
+                backgroundImage: post.authorPhotoUrl != null ? CachedNetworkImageProvider(post.authorPhotoUrl!) : null,
+                child: post.authorPhotoUrl == null ? const Icon(Icons.person, color: Colors.grey) : null,
               ),
               const SizedBox(width: 10),
               Column(
@@ -219,22 +216,93 @@ class _PostHeader extends StatelessWidget {
                   Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.bold)),
                   Row(
                     children: [
-                      const Text('1h ago', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                      Text(_getTimeAgo(post.createdAt), style: const TextStyle(color: Colors.grey, fontSize: 12)),
                       const SizedBox(width: 8),
                       const Text('•', style: TextStyle(color: Colors.grey, fontSize: 12)),
                       const SizedBox(width: 8),
-                      Text(post.type.name.toUpperCase(), style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+                      Text(
+                        post.type.name.toUpperCase(),
+                        style: TextStyle(
+                          color: post.type == PostType.need ? Colors.green.shade700 : Colors.purple.shade700,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
-              const Spacer(),
-              const Icon(Icons.more_horiz, color: Colors.grey),
             ],
           ),
           const SizedBox(height: 16),
           ParsedText(text: post.content, style: const TextStyle(fontSize: 16, height: 1.5)),
-          const SizedBox(height: 24),
+          if (post.imageUrl != null && post.imageUrl!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CachedNetworkImage(
+                imageUrl: post.imageUrl!,
+                fit: BoxFit.cover,
+                width: double.infinity,
+              ),
+            ),
+          ],
+          if (post.pollOptions != null && post.pollOptions!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            ...List.generate(post.pollOptions!.length, (index) {
+              final optionText = post.pollOptions![index];
+              final votes = post.pollVotes ?? {};
+              final totalVotes = votes.length;
+              final optionVotes = votes.values.where((v) => v == index).length;
+              final percentage = totalVotes > 0 ? (optionVotes / totalVotes) : 0.0;
+              final isSelected = currentUserId != null && votes[currentUserId] == index;
+
+              return InkWell(
+                onTap: currentUserId == null
+                    ? null
+                    : () {
+                        ref.read(postRepositoryProvider).votePoll(post.id, currentUserId, index);
+                      },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? Colors.black : Colors.transparent,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Stack(
+                    children: [
+                      FractionallySizedBox(
+                        widthFactor: percentage,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black.withAlpha(20),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Row(
+                          children: [
+                            Text(optionText, style: TextStyle(fontSize: 13, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+                            const Spacer(),
+                            if (totalVotes > 0)
+                              Text('${(percentage * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+          const SizedBox(height: 20),
           Row(
             children: [
               const Icon(Icons.chat_bubble_outline, size: 18, color: Colors.grey),
@@ -251,5 +319,12 @@ class _PostHeader extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getTimeAgo(DateTime dateTime) {
+    final diff = DateTime.now().difference(dateTime);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return DateFormat.Md().format(dateTime);
   }
 }

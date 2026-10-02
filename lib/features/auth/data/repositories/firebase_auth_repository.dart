@@ -49,6 +49,12 @@ class FirebaseAuthRepository implements IAuthRepository {
   @override
   Future<AuthUser?> signInWithGoogle() async {
     try {
+      if (kIsWeb) {
+        final googleProvider = GoogleAuthProvider();
+        final credentials = await _auth.signInWithPopup(googleProvider);
+        return _mapFirebaseUser(credentials.user);
+      }
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
@@ -68,6 +74,18 @@ class FirebaseAuthRepository implements IAuthRepository {
   @override
   Future<AuthUser?> signInWithApple() async {
     try {
+      if (kIsWeb) {
+        final appleProvider = OAuthProvider('apple.com');
+        final credentials = await _auth.signInWithPopup(appleProvider);
+        return _mapFirebaseUser(credentials.user);
+      }
+
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        final appleProvider = OAuthProvider('apple.com');
+        final credentials = await _auth.signInWithProvider(appleProvider);
+        return _mapFirebaseUser(credentials.user);
+      }
+
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -82,6 +100,11 @@ class FirebaseAuthRepository implements IAuthRepository {
 
       final credentials = await _auth.signInWithCredential(credential);
       return _mapFirebaseUser(credentials.user);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'operation-not-allowed') {
+        throw 'Apple Sign-In is not enabled in your Firebase Console. Please enable Apple under Authentication > Sign-in method.';
+      }
+      rethrow;
     } catch (e) {
       rethrow;
     }

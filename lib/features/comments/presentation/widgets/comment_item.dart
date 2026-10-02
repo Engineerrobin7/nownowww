@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:nownowww/features/comments/domain/models/comment_model.dart';
 import 'package:nownowww/features/comments/presentation/providers/comment_providers.dart';
 import 'package:nownowww/shared/widgets/parsed_text.dart';
@@ -31,7 +33,7 @@ class CommentItem extends ConsumerWidget {
               CircleAvatar(
                 radius: 16,
                 backgroundColor: Colors.grey.shade100,
-                backgroundImage: comment.authorPhotoUrl != null ? NetworkImage(comment.authorPhotoUrl!) : null,
+                backgroundImage: comment.authorPhotoUrl != null ? CachedNetworkImageProvider(comment.authorPhotoUrl!) : null,
                 child: comment.authorPhotoUrl == null ? const Icon(Icons.person, size: 18, color: Colors.grey) : null,
               ),
               const SizedBox(width: 10),
@@ -43,7 +45,7 @@ class CommentItem extends ConsumerWidget {
                       children: [
                         Text(comment.authorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                         const SizedBox(width: 8),
-                        const Text('58m ago', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                        Text(_getTimeAgo(comment.createdAt), style: const TextStyle(color: Colors.grey, fontSize: 11)),
                         const Spacer(),
                         const Icon(Icons.more_horiz, size: 18, color: Colors.grey),
                       ],
@@ -60,7 +62,7 @@ class CommentItem extends ConsumerWidget {
                         const Spacer(),
                         const Icon(Icons.favorite_border, size: 14, color: Colors.grey),
                         const SizedBox(width: 4),
-                        const Text('5', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text('${comment.likesCount}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
                   ],
@@ -82,10 +84,17 @@ class CommentItem extends ConsumerWidget {
               );
             },
             loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
           ),
         ],
       ),
     );
+  }
+
+  String _getTimeAgo(DateTime dateTime) {
+    final diff = DateTime.now().difference(dateTime);
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return DateFormat.Md().format(dateTime);
   }
 }

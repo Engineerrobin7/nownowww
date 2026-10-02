@@ -193,7 +193,7 @@ class _TrendingAndRecent extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator(color: Colors.black)),
-            error: (_, __) => const SizedBox.shrink(),
+            error: (_, _) => const SizedBox.shrink(),
           ),
         ),
         const SizedBox(height: 32),

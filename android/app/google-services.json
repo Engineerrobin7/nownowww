@@ -1,4 +1,4 @@
-77{
+{
   "project_info": {
     "project_number": "80057639288",
     "project_id": "nowno-e4ebb",
@@ -25,12 +25,7 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "80057639288-52q5cfjpqi44cit3i07l95pfnr3p23po.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

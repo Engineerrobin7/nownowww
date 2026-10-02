@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:nownowww/features/auth/presentation/providers/auth_providers.dart';
 import 'package:nownowww/features/profile/domain/models/user_model.dart';
+import 'package:nownowww/shared/presentation/providers/storage_providers.dart';
 import 'package:nownowww/shared/widgets/presence_avatar.dart';
 import '../providers/message_providers.dart';
 import '../../domain/models/message_model.dart';
@@ -21,6 +25,8 @@ class ChatDetailScreen extends ConsumerStatefulWidget {
 class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
   final _messageController = TextEditingController();
   Timer? _typingTimer;
+  File? _selectedImage;
+  bool _isUploadingImage = false;
 
   @override
   void dispose() {
@@ -41,22 +47,52 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
     });
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    if (image != null) {
+      setState(() => _selectedImage = File(image.path));
+    }
+  }
+
   void _sendMessage() async {
     final text = _messageController.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && _selectedImage == null) return;
 
     final currentUid = ref.read(currentUserProvider)?.uid;
     if (currentUid == null) return;
+
+    setState(() => _isUploadingImage = true);
+
+    String? imageUrl;
+    if (_selectedImage != null) {
+      try {
+        imageUrl = await ref
+            .read(storageRepositoryProvider)
+            .uploadImage(file: _selectedImage!, path: 'chat_images');
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload image: $e')));
+        }
+      }
+    }
 
     final message = MessageModel(
       id: const Uuid().v4(),
       senderId: currentUid,
       text: text,
+      imageUrl: imageUrl,
       createdAt: DateTime.now(),
     );
 
     await ref.read(messageRepositoryProvider).sendMessage(widget.chatId, message);
     _messageController.clear();
+    if (mounted) {
+      setState(() {
+        _selectedImage = null;
+        _isUploadingImage = false;
+      });
+    }
     ref.read(messageRepositoryProvider).setTypingStatus(widget.chatId, currentUid, false);
   }
 
@@ -95,7 +131,7 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
                       : Text(widget.otherUser.isOnline ? 'Online' : 'Offline', style: TextStyle(color: Colors.grey.shade500, fontSize: 10));
                   },
                   loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
+                  error: (_, _) => const SizedBox.shrink(),
                 ),
               ],
             ),
@@ -121,6 +157,26 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
               error: (e, _) => Center(child: Text('Error: $e')),
             ),
           ),
+          if (_selectedImage != null)
+            Container(
+              padding: const EdgeInsets.all(8),
+              color: Colors.grey.shade50,
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(_selectedImage!, width: 60, height: 60, fit: BoxFit.cover),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('Image attached', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: () => setState(() => _selectedImage = null),
+                  ),
+                ],
+              ),
+            ),
           _buildInput(),
         ],
       ),
@@ -133,6 +189,10 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
       decoration: BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Colors.grey.shade200, width: 0.5))),
       child: Row(
         children: [
+          IconButton(
+            icon: const Icon(Icons.image_outlined, color: Colors.black),
+            onPressed: _pickImage,
+          ),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -146,7 +206,12 @@ class _ChatDetailScreenState extends ConsumerState<ChatDetailScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          IconButton(onPressed: _sendMessage, icon: const Icon(Icons.send, color: Colors.black)),
+          IconButton(
+            onPressed: _isUploadingImage ? null : _sendMessage,
+            icon: _isUploadingImage
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+              : const Icon(Icons.send, color: Colors.black),
+          ),
         ],
       ),
     );
@@ -164,7 +229,8 @@ class _MessageBubble extends StatelessWidget {
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.all(12),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
           color: isMe ? Colors.black : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(20).copyWith(
@@ -172,7 +238,54 @@ class _MessageBubble extends StatelessWidget {
             bottomLeft: isMe ? const Radius.circular(20) : const Radius.circular(0),
           ),
         ),
-        child: Text(message.text, style: TextStyle(color: isMe ? Colors.white : Colors.black, fontSize: 14)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (message.imageUrl != null && message.imageUrl!.isNotEmpty) ...[
+              GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog.fullscreen(
+                      backgroundColor: Colors.black,
+                      child: Stack(
+                        children: [
+                          Center(child: InteractiveViewer(child: CachedNetworkImage(imageUrl: message.imageUrl!))),
+                          Positioned(
+                            top: 40,
+                            right: 20,
+                            child: IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    imageUrl: message.imageUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      height: 140,
+                      color: Colors.grey.shade200,
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                  ),
+                ),
+              ),
+              if (message.text.isNotEmpty) const SizedBox(height: 8),
+            ],
+            if (message.text.isNotEmpty)
+              Text(
+                message.text,
+                style: TextStyle(color: isMe ? Colors.white : Colors.black, fontSize: 14),
+              ),
+          ],
+        ),
       ),
     );
   }

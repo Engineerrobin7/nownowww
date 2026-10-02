@@ -34,9 +34,10 @@ class SettingsScreen extends ConsumerWidget {
           ],
           _buildSectionHeader('Account'),
           _buildSettingsTile(Icons.person_outline, 'Edit Profile', onTap: () => context.push('/edit-profile', extra: profile)),
+          _buildSettingsTile(Icons.bookmark_outline, 'Saved Posts', onTap: () => context.push('/saved-posts')),
           _buildSettingsTile(Icons.lock_outline, 'Privacy & Security', onTap: () => context.push('/privacy-settings')),
           _buildSettingsTile(Icons.notifications_none, 'Notifications'),
-          _buildSettingsTile(Icons.block_outlined, 'Blocked Users'),
+          _buildSettingsTile(Icons.block_outlined, 'Blocked Users', onTap: () => context.push('/blocked-users')),
           _buildSettingsTile(Icons.visibility_off_outlined, 'Muted Words'),
           _buildSettingsTile(Icons.language_outlined, 'Language', trailingText: 'English'),
           
